@@ -1,4 +1,4 @@
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 from abc import ABC, abstractmethod
 from sklearn.model_selection import KFold
 import numpy as np
@@ -14,7 +14,7 @@ class AbstractModel(ABC):
     def predict(self, X_test) -> np.array:
         pass
 
-    def getModel(self):
+    def get_model(self):
         return self.model
 
     @abstractmethod
@@ -49,10 +49,10 @@ def import_data():
 def clean_data(X, y): # (X: np.array, y: np.array)
     return # np.array, np.array
 
-def split_data(X, y, c): # (X: np.array, y: np.array, c:float)
-    return
+def split_data(X, y, test_size): # (X: np.array, y: np.array, test_size :float)
+    return train_test_split(X, y, test_size=test_size, random_state=42)
 
-def get_model(name, nb_input):# -> AbstractModel
+def get_model_by_name(name, nb_input):# -> AbstractModel
     # Match name:
     # Case “SVC”:
     #     Return SklearnModel(SVC())
@@ -61,7 +61,7 @@ def get_model(name, nb_input):# -> AbstractModel
     return
 
 def k_fold_cross_validation(n_splits = 5, random_state=34):
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=34)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     return kf
 
 def compute_precision_recall( y_pred, y_true):
