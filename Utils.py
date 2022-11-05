@@ -134,9 +134,9 @@ class TorchMLP(nn.Module):
         self.dropout1 = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(128,64)
         self.dropout2 = nn.Dropout(p=0.3)
-        self.fc3 = nn.Linear(64,1)
+        self.fc3 = nn.Linear(64,32)
         self.dropout3 = nn.Dropout(p=0.2)
-        self.fc4 = nn.Linear(64, 1)
+        self.fc4 = nn.Linear(32, 1)
         self.relu = nn.ReLU()
         self.sigm = nn.Sigmoid()
 
