@@ -126,6 +126,30 @@ class TorchModel(AbstractModel):
             output = self.model(torch.from_numpy(X_test))
         return output
 
+
+class TorchMLP(nn.Module):
+    def __init__(self, nb_input): # FUNCTION TO BE COMPLETED
+        super(TorchMLP,self).__init__()
+        self.fc1 = nn.Linear(nb_input, 128)
+        self.dropout1 = nn.Dropout(p=0.3)
+        self.fc2 = nn.Linear(128,64)
+        self.dropout2 = nn.Dropout(p=0.3)
+        self.fc3 = nn.Linear(64,1)
+        self.dropout3 = nn.Dropout(p=0.2)
+        self.fc4 = nn.Linear(64, 1)
+        self.relu = nn.ReLU()
+        self.sigm = nn.Sigmoid()
+
+    def forward(self,x): # FUNCTION TO BE COMPLETED
+        x = self.relu(self.fc1(x))
+        x = self.dropout1(x)
+        x = self.relu(self.fc2(x))
+        x = self.dropout2(x)
+        x = self.relu(self.fc3(x))
+        x = self.dropout3(x)
+        x = self.sigm(self.fc4(x))
+        return x
+
 def import_data():
     return
 
