@@ -19,10 +19,6 @@ class AbstractModel(ABC):
     def get_model(self):
         return self.model
 
-    @abstractmethod
-    def metric(self):
-        pass
-
 class SklearnModel(AbstractModel):
     def __init__(self, model):
         super().__init__(model)
