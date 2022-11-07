@@ -1,6 +1,8 @@
 from sklearn.model_selection import KFold, train_test_split
 from abc import ABC, abstractmethod
 from torch.utils.data import TensorDataset, DataLoader
+import pandas as pd
+from sklearn.impute import SimpleImputer
 import numpy as np
 import torch.nn as nn
 import torch
@@ -146,11 +148,44 @@ class TorchMLP(nn.Module):
         x = self.sigm(self.fc4(x))
         return x
 
-def import_data():
-    return
+def import_data(name='ckd', path):  # (name=’ckd’ / ‘bad’, path: str)
+    if name == 'bad':
+        data = pd.read_csv(path, sep=",", header=None)
 
-def clean_data(X, y): # (X: np.array, y: np.array)
-    return # np.array, np.array
+    elif name == 'ckd':
+        data = pd.read_csv(path)
+        data.drop('id', axis=1, inplace=True)
+        data.classification = data.classification.replace("ckd\t", "ckd")
+        data.classification = data.classification.replace(
+            ['ckd', 'notckd'], [1, 0])
+
+    return data  # pd.DF
+
+
+def clean_data(data, mode='means'):  # (data: pd.DF, mode = 'means' / 'median')
+    imp_most_frequent = SimpleImputer(
+        missing_values=np.nan, strategy='most_frequent')
+
+    if mode == 'median':
+        imp = SimpleImputer(missing_values=np.nan, strategy='median')
+    else:
+        imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+
+    numeric_columns = data.columns[data.dtypes == float]
+    categoric_columns = data.columns[data.dtypes ==
+                                     object or data.dtypes == int]
+
+    imp.fit(data[numeric_columns])
+    imp_most_frequent.fit(data[categoric_columns])
+
+    data[numeric_columns] = imp.transform(data[numeric_columns])
+    data[categoric_columns] = imp_most_frequent.transform(
+        data[categoric_columns])
+
+    X = data.iloc[:, :-1].values
+    y = data.iloc[:, -1].values
+
+    return X, y
 
 def split_data(X, y, test_size): # (X: np.array, y: np.array, test_size :float)
     return train_test_split(X, y, test_size=test_size, random_state=42)
