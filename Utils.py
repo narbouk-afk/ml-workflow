@@ -6,6 +6,7 @@ from sklearn.impute import SimpleImputer
 import numpy as np
 import torch.nn as nn
 import torch
+import os, platform
 
 class AbstractModel(ABC):
     def __init__(self, model):
@@ -15,6 +16,7 @@ class AbstractModel(ABC):
     def train(self, kf : KFold, X: np.array, y: np.array):
         pass
 
+    @abstractmethod
     def predict(self, X_test) -> np.array:
         pass
 
@@ -43,46 +45,52 @@ class SklearnModel(AbstractModel):
         return self.model.predict(X_valid)
 
 class TorchModel(AbstractModel):
-    def __init__(self, model: nn.Module, n_epochs=30, lr=0.01):
+    def __init__(self, model: nn.Module, n_epochs=50, lr=0.01):
         super().__init__(model)
-        self.criterion = nn.BCEWithLogitsLoss()
+        self.criterion = nn.BCELoss()
         self.optimizer = torch.optim.Adam(model.parameters(), lr = lr)
         self.n_epochs = n_epochs
-        self.init_device()
+        self.__init_device()
+        self.model.to(device=self.device)
+        self.clear_cmd = 'cls' if platform.system() == "Windows" else 'clear'
 
 
-    def init_device(self):
+    def __init_device(self):
         if torch.cuda.is_available():
             self.device = torch.device('cuda')
-        elif torch.backends.mps.is_available():
-            self.device = torch.device('mps')
+        #elif torch.backends.mps.is_available():
+        #    self.device = torch.device('mps')
         else:
             self.device = torch.device('cpu')
 
     def train(self, kf: KFold, X: np.array, y: np.array) -> (list[float], list[float]):
         precisions, recalls = [], []
+        fold_index = 0
+        print("training : 0%")
         for train_index, test_index in kf.split(X):
+
             X_train, X_valid, y_train, y_valid = X[train_index], X[test_index], y[train_index], y[test_index]
 
-            tensor_X_train, tensor_X_valid = torch.from_numpy(X_train), torch.from_numpy(X_valid)
-            tensor_y_train, tensor_y_test = torch.from_numpy(y_train), torch.from_numpy(y_valid)
+            # Create DataLoader for training
+            tensor_X_train = torch.from_numpy(X_train)
+            tensor_y_train = torch.from_numpy(y_train)
 
             train_dataset = TensorDataset(tensor_X_train, tensor_y_train)
-            valid_dataset = TensorDataset(tensor_X_valid, tensor_y_test)
-
             train_loader = DataLoader(train_dataset)
-            valid_loader = DataLoader(valid_dataset)
 
-            self.__one_folded_train(train_loader, valid_loader)
+            self.__one_folded_train(train_loader)
 
+            # Validate the model
             y_pred = self.predict(X_valid)
             precision, recall = compute_precision_recall(y_pred, y_valid)
             precisions.append(precision)
             recalls.append(recall)
-            return precisions, recalls
+            fold_index+=1
+            os.system(self.clear_cmd)
+            print(f"training : {100*fold_index/kf.n_splits}%")
+        return precisions, recalls
 
-    def __one_folded_train(self, train_loader, valid_loader):
-        valid_loss_min = np.Inf  # set initial "min" to infinity
+    def __one_folded_train(self, train_loader):
         for epoch in range(self.n_epochs):
             train_loss, valid_loss = 0, 0  # monitor losses
 
@@ -90,51 +98,32 @@ class TorchModel(AbstractModel):
             self.model.train()  # prep model for training
             for data, label in train_loader:
                 data = data.to(device=self.device, dtype=torch.float32)
-                label = label.to(device=self.device, dtype=torch.long)
+                label = label.to(device=self.device, dtype=torch.float32)
                 self.optimizer.zero_grad()  # clear the gradients of all optimized variables
                 output = self.model(data)  # forward pass: compute predicted outputs by passing inputs to the model
                 loss = self.criterion(output, label)  # calculate the loss
                 loss.backward()  # backward pass: compute gradient of the loss with respect to model parameters
                 self.optimizer.step()  # perform a single optimization step (parameter update)
                 train_loss += loss.item() * data.size(0)  # update running training loss
-
-            # validate the model
-            self.model.eval()
-            for data, label in valid_loader:
-                data = data.to(device=self.device, dtype=torch.float32)
-                label = label.to(device=self.device, dtype=torch.long)
-                with torch.no_grad():
-                    output = self.model(data)
-                loss = self.criterion(output, label)
-                valid_loss += loss.item() * data.size(0)
-
-            # calculate average loss over an epoch
-            train_loss /= len(train_loader.sampler)
-            valid_loss /= len(valid_loader.sampler)
-
-            # save model if validation loss has decreased
-            if valid_loss <= valid_loss_min:
-                torch.save(self.model.state_dict(), 'model.pt')
-                valid_loss_min = valid_loss
         pass
 
     def predict(self, X_test) -> np.array:
         self.model.eval()
         with torch.no_grad():
-            output = self.model(torch.from_numpy(X_test))
-        return output
+            output = self.model(torch.from_numpy(X_test).float().to(self.device))
+        return torch.round(output).to('cpu').numpy()
 
 
 class TorchMLP(nn.Module):
     def __init__(self, nb_input): # FUNCTION TO BE COMPLETED
         super(TorchMLP,self).__init__()
-        self.fc1 = nn.Linear(nb_input, 128)
+        self.fc1 = nn.Linear(nb_input, 64)
         self.dropout1 = nn.Dropout(p=0.3)
-        self.fc2 = nn.Linear(128,64)
+        self.fc2 = nn.Linear(64,32)
         self.dropout2 = nn.Dropout(p=0.3)
-        self.fc3 = nn.Linear(64,32)
+        self.fc3 = nn.Linear(32,16)
         self.dropout3 = nn.Dropout(p=0.2)
-        self.fc4 = nn.Linear(32, 1)
+        self.fc4 = nn.Linear(16, 1)
         self.relu = nn.ReLU()
         self.sigm = nn.Sigmoid()
 
