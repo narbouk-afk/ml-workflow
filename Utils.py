@@ -151,14 +151,10 @@ def import_data(name='ckd', path):  # (name=’ckd’ / ‘bad’, path: str)
     return data  # pd.DF
 
 
-def clean_data(data, mode='means'):  # (data: pd.DF, mode = 'means' / 'median')
+def clean_data(data, mode='mean'):  # (data: pd.DF, mode = 'mean' / 'median')
     imp_most_frequent = SimpleImputer(
         missing_values=np.nan, strategy='most_frequent')
-
-    if mode == 'median':
-        imp = SimpleImputer(missing_values=np.nan, strategy='median')
-    else:
-        imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp = SimpleImputer(missing_values=np.nan, strategy=mode)
 
     numeric_columns = data.columns[data.dtypes == float]
     categoric_columns = data.columns[data.dtypes ==
