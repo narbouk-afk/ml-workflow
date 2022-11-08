@@ -163,6 +163,9 @@ def clean_data(data, mode='mean'):  # (data: pd.DF, mode = 'mean' / 'median')
         missing_values=np.nan, strategy='most_frequent')
     imp = SimpleImputer(missing_values=np.nan, strategy=mode)
 
+    # numeric_columns = ['age', 'bp', 'bgr', 'bu', 'sc', 'sod', 'pot', 'hemo', 'pcv', 'wbcc', 'rbcc']
+    # categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc', 'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
+
     numeric_columns = data.columns[data.dtypes == float]
     categoric_columns = data.columns[data.dtypes ==
                                      object or data.dtypes == int]
