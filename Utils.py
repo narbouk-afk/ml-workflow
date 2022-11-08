@@ -150,35 +150,44 @@ def import_data(path, name='ckd'):  # (name=’ckd’ / ‘bad’, path: str)
 
     elif name == 'ckd':
         data = pd.read_csv(path)
-        data.drop('id', axis=1, inplace=True)
-        data.classification = data.classification.replace("ckd\t", "ckd")
-        data.classification = data.classification.replace(
-            ['ckd', 'notckd'], [1, 0])
 
     return data  # pd.DF
 
 
-def clean_data(data, mode='mean'):  # (data: pd.DF, mode = 'mean' / 'median')
+# (data: pd.DF, name=’ckd’ / ‘bad’, mode = 'mean' / 'median')
+def clean_data(data, name='ckd', mode='mean'):
     imp_most_frequent = SimpleImputer(
         missing_values=np.nan, strategy='most_frequent')
     imp = SimpleImputer(missing_values=np.nan, strategy=mode)
 
-    # numeric_columns = ['age', 'bp', 'bgr', 'bu', 'sc', 'sod', 'pot', 'hemo', 'pcv', 'wbcc', 'rbcc']
-    # categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc', 'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
+    if name == 'ckd':
+        data = data.replace("\t43", 43)
+        data = data.replace("\t6200", 6200)
+        data = data.replace("\t8400", 8400)
+        data = data.replace("\tno", "no")
+        data = data.replace("\tyes", "yes")
+        data = data.replace(" yes", "yes")
+        data = data.replace("\t?", np.nan)
+        data = data.replace("ckd\t", "ckd")
+        data = data.replace(['ckd', 'notckd'], [1, 0])
 
-    numeric_columns = data.columns[data.dtypes == float]
-    categoric_columns = data.columns[data.dtypes ==
-                                     object or data.dtypes == int]
+        categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc',
+                             'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
+        data[categoric_columns] = data[categoric_columns].astype("category")
 
-    imp.fit(data[numeric_columns])
-    imp_most_frequent.fit(data[categoric_columns])
+        numeric_columns = data.columns[data.dtypes != "category"]
 
-    data[numeric_columns] = imp.transform(data[numeric_columns])
-    data[categoric_columns] = imp_most_frequent.transform(
-        data[categoric_columns])
+        imp.fit(data[numeric_columns])
+        imp_most_frequent.fit(data[categoric_columns])
+
+        data[numeric_columns] = imp.transform(data[numeric_columns])
+        data[categoric_columns] = imp_most_frequent.transform(
+            data[categoric_columns])
 
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
+
+    X = (X - X.mean())/X.std()
 
     return X, y
 
