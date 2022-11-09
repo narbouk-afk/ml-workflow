@@ -144,38 +144,30 @@ class TorchMLP(nn.Module):
         return x
 
 
-def import_data(path, name='ckd'):  # (name=’ckd’ / ‘bad’, path: str)
-    if name == 'bad':
-        data = pd.read_csv(path, sep=",", header=None)
-
-    elif name == 'ckd':
-        data = pd.read_csv(path)
-
+def import_data(path):  # (path: str)
+    data = pd.read_csv(path, sep=",", header=None)
     return data  # pd.DF
 
 
 # (data: pd.DF, name=’ckd’ / ‘bad’, mode = 'mean' / 'median')
-def clean_data(data, name='ckd', mode='mean'):
-    imp_most_frequent = SimpleImputer(
-        missing_values=np.nan, strategy='most_frequent')
-    imp = SimpleImputer(missing_values=np.nan, strategy=mode)
+def clean_data(data, clean=True, mode='mean'):
+    if clean:
+        corrections = [("\t43", 43), ("\t6200", 6200),
+                       ("\t8400", 4800), ("\tno", "no"), ("\tyes", "yes"), (" yes", "yes"), ("ckd\t", 1), ("\t?", ""), ("ckd", 1), ("notckd", 0)]
 
-    if name == 'ckd':
-        data = data.replace("\t43", 43)
-        data = data.replace("\t6200", 6200)
-        data = data.replace("\t8400", 8400)
-        data = data.replace("\tno", "no")
-        data = data.replace("\tyes", "yes")
-        data = data.replace(" yes", "yes")
-        data = data.replace("\t?", np.nan)
-        data = data.replace("ckd\t", "ckd")
-        data = data.replace(['ckd', 'notckd'], [1, 0])
+        for correction in corrections:
+            data = data.replace(correction[0], correction[1])
+        data = data.replace("?", np.nan)
 
         categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc',
                              'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
         data[categoric_columns] = data[categoric_columns].astype("category")
 
         numeric_columns = data.columns[data.dtypes != "category"]
+
+        imp_most_frequent = SimpleImputer(
+            missing_values=np.nan, strategy='most_frequent')
+        imp = SimpleImputer(missing_values=np.nan, strategy=mode)
 
         imp.fit(data[numeric_columns])
         imp_most_frequent.fit(data[categoric_columns])
