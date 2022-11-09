@@ -144,44 +144,44 @@ class TorchMLP(nn.Module):
         return x
 
 
-def import_data(path):  # (path: str)
-    data = pd.read_csv(path, sep=",", header=None)
+def import_data(path, header='infer'):  # (path: str, header = 'infer' / None)
+    data = pd.read_csv(path, sep=",", header=header)
     return data  # pd.DF
 
 
-# (data: pd.DF, name=’ckd’ / ‘bad’, mode = 'mean' / 'median')
-def clean_data(data, clean=True, mode='mean'):
-    if clean:
-        corrections = [("\t43", 43), ("\t6200", 6200),
-                       ("\t8400", 4800), ("\tno", "no"), ("\tyes", "yes"), (" yes", "yes"), ("ckd\t", 1), ("\t?", ""), ("ckd", 1), ("notckd", 0)]
+# (data: pd.DF, corrections: list[tuple(str, str/float)], categoric_columns = [str], mode = 'mean' / 'median')
+def clean_data(data, corrections=[], categoric_columns=[], mode='mean'):
+    # corrections = [("\t43", 43), ("\t6200", 6200),
+    #                ("\t8400", 4800), ("\tno", "no"), ("\tyes", "yes"), (" yes", "yes"), ("ckd\t", 1), ("\t?", ""), ("ckd", 1), ("notckd", 0)]
+    # categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc',
+    #                      'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
 
-        for correction in corrections:
-            data = data.replace(correction[0], correction[1])
-        data = data.replace("?", np.nan)
+    for correction in corrections:
+        data = data.replace(correction[0], correction[1])
+    data = data.replace("?", np.nan)
 
-        categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc',
-                             'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
+    imp_most_frequent = SimpleImputer(
+        missing_values=np.nan, strategy='most_frequent')
+    imp = SimpleImputer(missing_values=np.nan, strategy=mode)
+
+    if len(categoric_columns) >= 0:
         data[categoric_columns] = data[categoric_columns].astype("category")
-
-        numeric_columns = data.columns[data.dtypes != "category"]
-
-        imp_most_frequent = SimpleImputer(
-            missing_values=np.nan, strategy='most_frequent')
-        imp = SimpleImputer(missing_values=np.nan, strategy=mode)
-
-        imp.fit(data[numeric_columns])
         imp_most_frequent.fit(data[categoric_columns])
-
-        data[numeric_columns] = imp.transform(data[numeric_columns])
         data[categoric_columns] = imp_most_frequent.transform(
             data[categoric_columns])
+
+    numeric_columns = data.columns[data.dtypes != "category"]
+    data[numeric_columns] = data[numeric_columns].apply(pd.to_numeric)
+    imp.fit(data[numeric_columns])
+    data[numeric_columns] = imp.transform(data[numeric_columns])
 
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
 
+    X = pd.get_dummies(X)  # one hot encode
     X = (X - X.mean())/X.std()
 
-    return X, y
+    return X, y  # X: np.array, y: np.array
 
 
 def split_data(X, y, test_size):  # (X: np.array, y: np.array, test_size :float)
