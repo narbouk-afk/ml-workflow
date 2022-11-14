@@ -1,5 +1,7 @@
 from sklearn.model_selection import KFold, train_test_split
 from abc import ABC, abstractmethod
+
+from sklearn.svm import SVC
 from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -189,12 +191,11 @@ def split_data(X, y, test_size):  # (X: np.array, y: np.array, test_size :float)
 
 
 def get_model_by_name(name, nb_input):  # -> AbstractModel
-    # Match name:
-    # Case “SVC”:
-    #     Return SklearnModel(SVC())
-    # Case “TorchMLP”:
-    #     return TorchModel(MLP(nb_input))
-    return
+    match name:
+        case "SVC":
+            return SklearnModel(SVC())
+        case "TorchMLP":
+            return TorchModel(TorchMLP(nb_input))
 
 
 def k_fold_cross_validation(n_splits=5, random_state=34):
