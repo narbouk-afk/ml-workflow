@@ -1,7 +1,12 @@
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold, train_test_split
 from abc import ABC, abstractmethod
 
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -196,7 +201,18 @@ def get_model_by_name(name, nb_input):  # -> AbstractModel
             return SklearnModel(SVC())
         case "TorchMLP":
             return TorchModel(TorchMLP(nb_input))
-
+        case "Logistic regression":
+            return SklearnModel(LogisticRegression())
+        case "Decision tree":
+            return SklearnModel(DecisionTreeClassifier())
+        case "Random forest":
+            return SklearnModel(RandomForestClassifier())
+        case "KNN":
+            return SklearnModel(KNeighborsClassifier())
+        case "Naive bayes":
+            return SklearnModel(GaussianNB())
+        case _:
+            raise NameError('No matching model found')
 
 def k_fold_cross_validation(n_splits=5, random_state=34):
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
