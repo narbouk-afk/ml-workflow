@@ -43,8 +43,21 @@ Logistic regression | LogRegression  |   Sklearn
 --------------------+----------------+--------------
     Naive Bayes     |   NaiveBayes   |   Sklearn
 ```
+## About models' parameters/architecture
+All Sklearn models have been configured with default parameters. To change models' parameters, go to `params.py`
+and add the parameters you want to modify in the `arg` dictionary associated with the model 
+you want to modify.
 
-## Test and Deploy
+TorchMLP is a basic MLP implemented with Pytorch.
+It is a fully connected Neural Network with 3 hidden layers :
+```
+Hidden Layer 1 | 64 Neurals | Dropout : False | Activation : ReLU 
+Hidden Layer 2 | 32 Neurals | Dropout : True  | Activation : ReLU 
+Hidden Layer 3 | 16 Neurals | Dropout : True  | Activation : ReLU 
+Output Layer   |  1 Neural  | Dropout : True  | Activation : Sigmoid
+```
+
+## Test
 To run tests, just run the following command in the root folder :
 ```
 pytest
