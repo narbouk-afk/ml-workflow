@@ -34,7 +34,7 @@ class AbstractModel(ABC):
 
 
 class SklearnModel(AbstractModel):
-    def __init__(self, model):
+    def __init__(self, model, supervised= True):
         super().__init__(model)
 
     def train(self, kf: KFold, X: np.array, y: np.array):
@@ -195,7 +195,7 @@ def split_data(X, y, test_size):  # (X: np.array, y: np.array, test_size :float)
     return train_test_split(X, y, test_size=test_size, random_state=42)
 
 
-def get_model_by_name(name, nb_input):  # -> AbstractModel
+def get_model_by_name(name, nb_input, **kwargs):  # -> AbstractModel
     match name:
         case "SVC":
             return SklearnModel(SVC())
@@ -204,9 +204,9 @@ def get_model_by_name(name, nb_input):  # -> AbstractModel
         case "LogRegression":
             return SklearnModel(LogisticRegression())
         case "DecisionTree":
-            return SklearnModel(DecisionTreeClassifier())
+            return SklearnModel(DecisionTreeClassifier(**kwargs))
         case "RandomForest":
-            return SklearnModel(RandomForestClassifier())
+            return SklearnModel(RandomForestClassifier(**kwargs))
         case "KNN":
             return SklearnModel(KNeighborsClassifier())
         case "NaiveBayes":
