@@ -12,7 +12,6 @@ def get_dataset_name(path: str) -> str:
 
 
 def import_data(path: str, header='infer') -> pd.DataFrame:
-    print(path)
     data = pd.read_csv(f'{os.getcwd()}/{path if path[0] != "/" else path[1:]}', sep=",", header=header)
     return data
 
