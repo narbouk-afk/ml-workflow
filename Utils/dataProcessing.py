@@ -35,10 +35,10 @@ def clean_data(data: pd.DataFrame,
     imp = SimpleImputer(missing_values=np.nan, strategy=mode)
 
     if len(categorical_columns) > 0:
-        data[categorical_columns] = data[categorical_columns].astype("category")
         imp_most_frequent.fit(data[categorical_columns])
         data[categorical_columns] = imp_most_frequent.transform(
             data[categorical_columns])
+        data[categorical_columns] = data[categorical_columns].astype("category")
 
     numeric_columns = data.columns[data.dtypes != "category"]
     data[numeric_columns] = data[numeric_columns].apply(pd.to_numeric)

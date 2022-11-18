@@ -14,7 +14,7 @@ model_params = {
     "SVC": {},
     "TorchMLP": {},
     "LogRegression": {},
-    "DecisionTree": {},
+    "DecisionTree": {"max_depth": 1},
     "RandomForest": {},
     "KNN": {},
     "NaiveBayes": {}
