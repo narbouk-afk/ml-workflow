@@ -150,6 +150,11 @@ class TorchMLP(nn.Module):
         x = self.sigm(self.fc4(x))
         return x
 
+def dataset_name(path):
+    temp = path.replace("\\", "/")
+    temp = temp.split("/")
+    return temp[-1]
+
 
 def import_data(path, header='infer'):  # (path: str, header = 'infer' / None)
     data = pd.read_csv(path, sep=",", header=header)
