@@ -1,5 +1,5 @@
 
-def displayResult(precisions: list[float], recalls: list[float], precision_test: float, recall_test: float):
+def display_result(precisions: list[float], recalls: list[float], precision_test: float, recall_test: float):
     fold_str = " ".join([f'fold{i+1}' for i in range(len(precisions))])
     precisions_str = "  ".join([f'{prec:.2f}' for prec in precisions])
     recalls_str = "  ".join([f'{recal:.2f}' for recal in recalls])
