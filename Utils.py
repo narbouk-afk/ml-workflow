@@ -163,11 +163,6 @@ def import_data(path, header='infer'):  # (path: str, header = 'infer' / None)
 
 # (data: pd.DF, corrections: list[tuple(str, str/float)], categoric_columns = [str], mode = 'mean' / 'median')
 def clean_data(data, corrections=[], categoric_columns=[], mode='mean'):
-    # corrections = [("\t43", 43), ("\t6200", 6200),
-    #                ("\t8400", 4800), ("\tno", "no"), ("\tyes", "yes"), (" yes", "yes"), ("ckd\t", 1), ("\t?", ""), ("ckd", 1), ("notckd", 0)]
-    # categoric_columns = ['sg', 'al', 'su', 'rbc', 'pc',
-    #                      'pcc', 'ba', 'htn', 'dm', 'cad', 'appet', 'pe', 'ane']
-
     for correction in corrections:
         data = data.replace(correction[0], correction[1])
     data = data.replace("?", np.nan)
@@ -206,15 +201,15 @@ def get_model_by_name(name, nb_input):  # -> AbstractModel
             return SklearnModel(SVC())
         case "TorchMLP":
             return TorchModel(TorchMLP(nb_input))
-        case "Logistic regression":
+        case "LogRegression":
             return SklearnModel(LogisticRegression())
-        case "Decision tree":
+        case "DecisionTree":
             return SklearnModel(DecisionTreeClassifier())
-        case "Random forest":
+        case "RandomForest":
             return SklearnModel(RandomForestClassifier())
         case "KNN":
             return SklearnModel(KNeighborsClassifier())
-        case "Naive bayes":
+        case "NaiveBayes":
             return SklearnModel(GaussianNB())
         case _:
             raise NameError('No matching model found')
@@ -230,3 +225,8 @@ def compute_precision_recall(y_pred, y_true):
     recall = np.sum(temp_recall == 1) / temp_recall.size
     precision = np.sum(temp_precision == 1) / temp_precision.size
     return precision, recall
+
+def get_dataset_name(path: str):
+    temp = path.replace("\\", "/")
+    temp = temp.split("/")
+    return temp[-1]
