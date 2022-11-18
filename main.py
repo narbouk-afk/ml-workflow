@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from Utils.models import *
 from Utils.dataProcessing import *
 from Utils.params import data_params, model_params
+from Utils.render import displayResult
 
 
 def main(data_path: str, model_name: str):
@@ -24,7 +25,7 @@ def main(data_path: str, model_name: str):
     # Test the model
     y_predict = model.predict(X_test)
     precisions_test, recall_test = compute_precision_recall(y_predict, y_test)
-    print(precisions_train, recalls_train, precisions_test, recall_test)
+    displayResult(precisions_train, recalls_train, precisions_test, recall_test)
 
 
 if __name__ == '__main__':

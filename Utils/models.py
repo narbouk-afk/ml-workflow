@@ -10,8 +10,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 import torch.nn as nn
 import torch
-import os
-import platform
+import sys
 
 
 class AbstractModel(ABC):
@@ -55,25 +54,19 @@ class SklearnModel(AbstractModel):
 class TorchModel(AbstractModel):
     def __init__(self, model: nn.Module, n_epochs=50, lr=0.01):
         super().__init__(model)
+        self.fold_index = 0
+        self.n_split = 0
         self.criterion = nn.BCELoss()
         self.optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         self.n_epochs = n_epochs
-        self.__init_device()
-        self.model.to(device=self.device)
-        self.clear_cmd = 'cls' if platform.system() == "Windows" else 'clear'
-
-    def __init_device(self):
-        if torch.cuda.is_available():
-            self.device = torch.device('cuda')
-        # elif torch.backends.mps.is_available():
-        #    self.device = torch.device('mps')
-        else:
-            self.device = torch.device('cpu')
+        self.device = torch.device('cpu')
+        self.model.to(device=self.device)  # use cpu for Neural Network
 
     def train(self, X: np.array, y: np.array, kf: KFold) -> (list[float], list[float]):
         precisions, recalls = [], []
-        fold_index = 0
-        print("training : 0%")
+        self.fold_index = 0
+        self.n_split = kf.n_splits
+        self.__progress()
         for train_index, test_index in kf.split(X):
             X_train, X_valid, y_train, y_valid = X[train_index], X[test_index], y[train_index], y[test_index]
 
@@ -84,6 +77,7 @@ class TorchModel(AbstractModel):
             train_dataset = TensorDataset(tensor_X_train, tensor_y_train)
             train_loader = DataLoader(train_dataset)
 
+            # Train the model on one split
             self.__one_folded_train(train_loader)
 
             # Validate the model
@@ -91,9 +85,9 @@ class TorchModel(AbstractModel):
             precision, recall = compute_precision_recall(y_pred, y_valid)
             precisions.append(precision)
             recalls.append(recall)
-            fold_index += 1
-            os.system(self.clear_cmd)
-            print(f"training : {100 * fold_index / kf.n_splits}%")
+            self.fold_index += 1
+            self.__progress()
+        print("")
         return precisions, recalls
 
     def __one_folded_train(self, train_loader):
@@ -122,6 +116,16 @@ class TorchModel(AbstractModel):
                                 .float()
                                 .to(self.device))
         return torch.round(output).to('cpu').numpy().reshape(-1)
+
+    def __progress(self):
+        bar_len = 100
+        filled_len = int(round(bar_len * self.fold_index / float(self.n_split)))
+
+        percents = round(100.0 * self.fold_index / float(self.n_split), 1)
+        bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+        sys.stdout.write('[%s] %s%s \r' % (bar, percents, '%'))
+        sys.stdout.flush()
 
 
 class TorchMLP(nn.Module):
