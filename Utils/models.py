@@ -118,7 +118,7 @@ class TorchModel(AbstractModel):
         return torch.round(output).to('cpu').numpy().reshape(-1)
 
     def __progress(self):
-        bar_len = 100
+        bar_len = 60
         filled_len = int(round(bar_len * self.fold_index / float(self.n_split)))
 
         percents = round(100.0 * self.fold_index / float(self.n_split), 1)
