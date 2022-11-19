@@ -6,5 +6,5 @@ def display_result(precisions: list[float], recalls: list[float], precision_test
     print(f'          {fold_str}')
     print(f'Precision  {precisions_str}')
     print(f'Recall     {recalls_str}')
-    print(f'Test precision : {precision_test:.3f}%')
-    print(f'Test recall    : {recall_test:.3f}%')
+    print(f'Test precision : {precision_test:.3f}')
+    print(f'Test recall    : {recall_test:.3f}')
