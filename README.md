@@ -3,6 +3,7 @@
 
 
 ## Installation
+
 For installation, the easiest way is to clone this repository using 
 ```
 git clone https://gitlab.imt-atlantique.fr/y20xu/ml-project.git
@@ -21,6 +22,7 @@ Make sure to have the following dependencies installed :
 ```
 
 ## How to run the script
+
 To run the project, you need to specify the path where the dataset is stored and a model name :
 ```
 python3 main.py dataset/path model_name
@@ -44,6 +46,7 @@ Logistic regression | LogRegression  |   Sklearn
     Naive Bayes     |   NaiveBayes   |   Sklearn
 ```
 ## About models' parameters/architecture
+
 All Sklearn models have been configured with default parameters. To change models' parameters, go to `params.py`
 and add the parameters you want to modify in the `arg` dictionary associated with the model 
 you want to modify.
@@ -58,6 +61,7 @@ Output Layer   |  1 Neural  | Dropout : True  | Activation : Sigmoid
 ```
 
 ## Test
+
 To run tests, just run the following command in the root folder :
 ```
 pytest

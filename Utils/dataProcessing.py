@@ -55,8 +55,10 @@ def clean_data(data: pd.DataFrame,
     data = pd.get_dummies(data)  # one hot encode
     data = (data - data.mean()) / data.std()  # normalize data
 
+    X = data.iloc[:,:-1].values
+
     # Dimension reduction using PCA
     pca = PCA(n_components=n_components)
-    X = pca.fit_transform(data)
+    X = pca.fit_transform(X)
 
     return X, y
